@@ -1,0 +1,199 @@
+import React, { useState } from 'react';
+
+// Shadcn UI components (mocked for this example)
+const Card = ({ children, className, ...props }) => (
+  <div className={`bg-white rounded-lg shadow-md ${className}`} {...props}>{children}</div>
+);
+const CardContent = ({ children }) => <div className="p-4">{children}</div>;
+const CardFooter = ({ children }) => <div className="p-4 border-t">{children}</div>;
+const CardHeader = ({ children }) => <div className="p-4 border-b">{children}</div>;
+const Button = ({ children, ...props }) => (
+  <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" {...props}>{children}</button>
+);
+const Progress = ({ value }) => (
+  <div className="w-full bg-gray-200 rounded">
+    <div className="bg-blue-500 rounded h-2" style={{ width: `${value}%` }}></div>
+  </div>
+);
+
+const GameComponent = () => {
+  const [affection, setAffection] = useState(50);
+  const [currentScene, setCurrentScene] = useState(0);
+  const [characterImage, setCharacterImage] = useState('/api/placeholder/300/400');
+  const [gameOver, setGameOver] = useState(false);
+  const [gameCleared, setGameCleared] = useState(false);
+
+  const scenes = [
+    {
+      text: "さくら「こんにちは！今日は学校の後、一緒に何かしない？」",
+      choices: [
+        { text: "一緒にカフェに行く", affectionChange: 15 },
+        { text: "図書館で勉強する", affectionChange: 10 },
+        { text: "家に帰る", affectionChange: -5 },
+      ],
+    },
+    {
+      text: "さくら「わぁ、楽しみ！あ、そういえば明日テストだったんだ...」",
+      choices: [
+        { text: "一緒に勉強しよう", affectionChange: 20 },
+        { text: "大丈夫、さくらなら余裕だよ", affectionChange: 10 },
+        { text: "え、知らなかったの？", affectionChange: -10 },
+      ],
+    },
+    {
+      text: "さくら「今日はありがとう！またね！」",
+      choices: [
+        { text: "また明日！", affectionChange: 10 },
+        { text: "楽しかったよ", affectionChange: 15 },
+        { text: "うん、バイバイ", affectionChange: 5 },
+      ],
+    },
+    {
+      text: "さくら「あら、偶然ね！週末なのに一人？私と遊びに行かない？」",
+      choices: [
+        { text: "喜んで！どこに行く？", affectionChange: 15 },
+        { text: "君と二人きりか...ドキドキするな", affectionChange: 20 },
+        { text: "ごめん、予定があるんだ", affectionChange: -10 },
+      ],
+    },
+    {
+      text: "さくら「プールに行きましょう！新しい水着、見てほしいな♪」",
+      choices: [
+        { text: "楽しみにしてるよ", affectionChange: 15 },
+        { text: "水着姿が眩しそうだな", affectionChange: 20 },
+        { text: "あまり露出の多い水着は...", affectionChange: -5 },
+      ],
+    },
+    {
+      text: "さくら「ねえ、私の部屋に来てくれてありがとう。ちょっとドキドキしちゃう...」",
+      choices: [
+        { text: "僕もドキドキしてる", affectionChange: 15 },
+        { text: "落ち着いて、何もしないよ", affectionChange: 10 },
+        { text: "二人きりで大丈夫？", affectionChange: 5 },
+      ],
+    },
+    {
+      text: "さくら「あのね...私、あなたのこと好きかも...どう思う？」",
+      choices: [
+        { text: "僕も好きだよ、さくら", affectionChange: 20 },
+        { text: "突然すぎて驚いたけど、嬉しい", affectionChange: 15 },
+        { text: "友達としてだよね？", affectionChange: -10 },
+      ],
+    },
+    {
+      text: "さくら「これからも一緒にいてくれる...？」",
+      choices: [
+        { text: "もちろん、ずっと一緒にいたい", affectionChange: 20 },
+        { text: "ゆっくり関係を育んでいこう", affectionChange: 15 },
+        { text: "まだ分からないけど、頑張ってみる", affectionChange: 10 },
+      ],
+    },
+  ];
+
+  const getBackgroundStyle = () => {
+    if (currentScene <= 2) {
+      return { backgroundColor: 'rgba(0, 128, 0, 0.2)' };
+    } else if (currentScene <= 5) {
+      return { backgroundColor: 'rgba(0, 0, 255, 0.2)' };
+    } else {
+      return { backgroundColor: 'rgba(255, 192, 203, 0.2)' };
+    }
+  };
+
+  const handleChoice = (affectionChange) => {
+    const newAffection = Math.max(0, Math.min(150, affection + affectionChange));
+    setAffection(newAffection);
+    
+    if (currentScene === 2) {
+      if (newAffection >= 85) {
+        setCurrentScene(3);
+      } else {
+        setGameOver(true);
+      }
+    } else if (currentScene === 5) {
+      if (newAffection >= 110) {
+        setCurrentScene(6);
+      } else {
+        setGameOver(true);
+      }
+    } else if (currentScene === 7) {
+      if (newAffection >= 130) {
+        setGameCleared(true);
+      } else {
+        setGameOver(true);
+      }
+    } else {
+      setCurrentScene(currentScene + 1);
+    }
+  };
+
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => setCharacterImage(e.target.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const resetGame = () => {
+    setAffection(50);
+    setCurrentScene(0);
+    setGameOver(false);
+    setGameCleared(false);
+  };
+
+  return (
+    <Card className="w-96 mx-auto my-4" style={getBackgroundStyle()}>
+      <CardHeader>
+        <h2 className="text-2xl font-bold text-center">星野さくらとの対話</h2>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-4">
+          <img src={characterImage} alt="星野さくら" className="w-full h-64 object-cover rounded" />
+          <input type="file" onChange={handleImageUpload} className="mt-2" accept="image/*" />
+        </div>
+        <Progress value={(affection / 150) * 100} className="w-full mb-4" />
+        <p className="text-center mb-4">好感度: {affection}/150</p>
+        {gameOver ? (
+          <>
+            <p className="text-center text-red-500 font-bold mb-4">バッドエンド</p>
+            <Button onClick={resetGame} className="w-full">新しくゲームを始める</Button>
+          </>
+        ) : gameCleared ? (
+          <>
+            <p className="text-center text-green-500 font-bold mb-4">ゲームクリア！おめでとうございます！</p>
+            <Button onClick={resetGame} className="w-full">新しくゲームを始める</Button>
+          </>
+        ) : currentScene < scenes.length ? (
+          <>
+            <p className="mb-4">{scenes[currentScene].text}</p>
+            <div className="space-y-2">
+              {scenes[currentScene].choices.map((choice, index) => (
+                <Button
+                  key={index}
+                  onClick={() => handleChoice(choice.affectionChange)}
+                  className="w-full"
+                >
+                  {choice.text}
+                </Button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-center mb-4">全てのシーンが終了しました。</p>
+            <Button onClick={resetGame} className="w-full">新しくゲームを始める</Button>
+          </>
+        )}
+      </CardContent>
+      <CardFooter>
+        <Button onClick={resetGame} className="w-full">
+          リセット
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+};
+
+export default GameComponent;
